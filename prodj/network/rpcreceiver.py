@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import time
-from concurrent.futures import Future
+from concurrent.futures import CancelledError, Future
 from select import select
 from threading import Thread
 
@@ -14,9 +14,10 @@ class RpcReceiver:
   def __init__(self):
     super().__init__()
     self.requests = dict()
-    self.keep_running = False
     self.request_timeout = 10
     self.recv_size = 4096
+    # self.check_timeouts_future = None
+    self.check_timeouts_task = None
 
   def addCall(self, xid):
     if xid in self.requests:
@@ -27,17 +28,52 @@ class RpcReceiver:
 
   def start(self, loop):
     asyncio.run_coroutine_threadsafe(self.checkTimeoutsTask(), loop)
-    self.keep_running = True
+    # self.check_timeouts_future = asyncio.run_coroutine_threadsafe(self.checkTimeoutsTask(), loop)
+    # todo: start from event loop init to create awaitable task
 
-  def stop(self):
-    self.keep_running = False
+  def stop(self, loop):
+    if self.check_timeouts_task is not None:
+      # self.check_timeouts_task.cancel()
+      loop.call_soon_threadsafe(self.check_timeouts_task.cancel)
+
+    # logging.debug("cancelling all tasks")
+    # for task in asyncio.all_tasks(loop):
+    #     # task.cancel()
+    #     logging.debug("cancelling %s", task)
+    #     loop.call_soon_threadsafe(task.cancel)
+    # logging.debug("cancelled all tasks")
+    # if self.check_timeouts_future is not None:
+    #   asyncio.run_coroutine_threadsafe(asyncio.wait(check_timeouts_future), loop)
+    #   loop.call_soon_threadsafe(self.check_timeouts_future.cancel)
+    #   # self.check_timeouts_future.cancel()
+    #   try:
+    #     self.check_timeouts_future.result()
+    #     logging.debug("check_timeouts_future done")
+    #   except:
+    #     logging.debug("check_timeouts_future exception")
+    #     pass
     if self.requests:
       logging.warning("stopped but still %d in queue", len(self.requests))
 
   async def checkTimeoutsTask(self):
-    while self.keep_running:
-      await asyncio.sleep(1)
-      self.checkTimeouts()
+    while True:
+      try:
+        # await asyncio.sleep(1)
+        self.check_timeouts_task = asyncio.create_task(asyncio.sleep(1))
+        await self.check_timeouts_task
+        logging.debug("checking timeouts")
+        self.checkTimeouts()
+      except CancelledError:
+        logging.debug("cancelled")
+        return
+    # while True:
+    #   try:
+    #     await asyncio.sleep(1)
+    #     logging.debug("checking timeouts")
+    #     self.checkTimeouts()
+    #   except CancelledError:
+    #     logging.debug("cancelled")
+    #     return
 
   def socketRead(self, sock):
     self.handleReceivedData(sock.recv(self.recv_size))

@@ -35,13 +35,17 @@ class NfsClient:
     self.receiver.start(self.loop)
 
   def stop(self):
-    logging.debug("NfsClient shutting down")
-    self.receiver.stop()
+    logging.debug("shutting down")
+    self.receiver.stop(self.loop)
     self.loop.call_soon_threadsafe(self.loop.stop)
-    self.closeSockets()
+    self.loop_thread.join()
+    logging.debug("loop_thread is_alive: "+str(self.loop_thread.is_alive()))
 
-  def run(self):
-    self.loop.run_forever()
+    pending = asyncio.all_tasks(self.loop)
+    self.loop.run_until_complete(asyncio.gather(*pending))
+    self.loop.close()
+
+    self.closeSockets()
 
   def openSockets(self):
     self.rpc_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
