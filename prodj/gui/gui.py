@@ -57,17 +57,17 @@ class PlayerWidget(QFrame):
 
     # metadata and player info
     self.labels["title"] = QLabel(self)
-    self.labels["title"].setStyleSheet("QLabel { color: white; font: bold 16pt; }")
+    self.labels["title"].setStyleSheet("QLabel { color: white; font: bold 14pt; }")
     self.labels["title"].setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
     self.labels["artist"] = QLabel(self)
     self.labels["artist"].setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
-    self.labels["artist"].setStyleSheet("QLabel { color: white; }")
+    self.labels["artist"].setStyleSheet("QLabel { color: white; font: bold 12pt;}")
     self.labels["album"] = QLabel(self)
     self.labels["album"].setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
     self.labels["album"].setStyleSheet("QLabel { color: white; }")
-    self.labels["info"] = QLabel(self)
-    self.labels["info"].setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
-    self.labels["info"].setStyleSheet("QLabel { color: white; }")
+    # self.labels["info"] = QLabel(self)
+    # self.labels["info"].setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
+    # self.labels["info"].setStyleSheet("QLabel { color: white; }")
 
     # artwork and player number
     self.labels["player_number"] = QLabel(self)
@@ -80,25 +80,25 @@ class PlayerWidget(QFrame):
     self.labels["artwork"].setPixmap(self.pixmap_empty)
 
     # buttons below time/beat bar
-    self.browse_button = QPushButton("BROWSE", self)
-    self.browse_button.setFlat(True)
-    self.browse_button.setStyleSheet("QPushButton { color: white; font: 10px; background-color: black; padding: 1px; border-style: outset; border-radius: 2px; border-width: 1px; border-color: gray; }")
-    self.download_button = QPushButton("DLOAD", self)
-    self.download_button.setFlat(True)
-    self.download_button.setStyleSheet("QPushButton { color: white; font: 10px; background-color: black; padding: 1px; border-style: outset; border-radius: 2px; border-width: 1px; border-color: gray; }")
+    # self.browse_button = QPushButton("BROWSE", self)
+    # self.browse_button.setFlat(True)
+    # self.browse_button.setStyleSheet("QPushButton { color: white; font: 10px; background-color: black; padding: 1px; border-style: outset; border-radius: 2px; border-width: 1px; border-color: gray; }")
+    # self.download_button = QPushButton("DLOAD", self)
+    # self.download_button.setFlat(True)
+    # self.download_button.setStyleSheet("QPushButton { color: white; font: 10px; background-color: black; padding: 1px; border-style: outset; border-radius: 2px; border-width: 1px; border-color: gray; }")
 
     self.labels["play_state"] = QLabel(self)
     self.labels["play_state"].setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
 
     buttons_layout = QHBoxLayout()
-    buttons_layout.addWidget(self.browse_button)
-    buttons_layout.addWidget(self.download_button)
+    # buttons_layout.addWidget(self.browse_button)
+    # buttons_layout.addWidget(self.download_button)
     buttons_layout.addWidget(self.labels["play_state"])
     buttons_layout.setStretch(2, 1)
     buttons_layout.setSpacing(3)
 
-    self.browse_button.clicked.connect(self.openBrowseDialog)
-    self.download_button.clicked.connect(self.downloadTrack)
+    # self.browse_button.clicked.connect(self.openBrowseDialog)
+    # self.download_button.clicked.connect(self.downloadTrack)
 
     # time and beat bar
     self.elapsed_label = ClickableLabel("ELAPSED", self)
@@ -178,14 +178,14 @@ class PlayerWidget(QFrame):
     layout = QGridLayout(self)
     layout.addWidget(self.labels["player_number"], 0, 0)
     layout.addWidget(self.labels["artwork"], 1, 0, 3, 1)
-    layout.addWidget(self.labels["title"], 0, 1)
-    layout.addWidget(self.labels["artist"], 1, 1)
-    layout.addWidget(self.labels["album"], 2, 1)
-    layout.addWidget(self.labels["info"], 3, 1)
-    layout.addLayout(time_layout, 0, 2, 4, 1)
-    layout.addWidget(bpm_box, 0, 3, 4, 1)
-    layout.addWidget(self.waveform, 4, 0, 1, 4)
-    layout.addWidget(self.preview_waveform, 5, 0, 1, 4)
+    layout.addWidget(self.labels["title"], 0, 1, 1, 3)
+    layout.addWidget(self.labels["artist"], 2, 1)
+    layout.addWidget(self.labels["album"], 3, 1)
+    # layout.addWidget(self.labels["info"], 3, 1)
+    layout.addLayout(time_layout, 1, 2, 4, 1)
+    layout.addWidget(bpm_box, 1, 3, 4, 1)
+    layout.addWidget(self.waveform, 5, 0, 1, 4)
+    layout.addWidget(self.preview_waveform, 6, 0, 1, 4)
 
     layout.setColumnStretch(1, 2)
 
@@ -202,7 +202,7 @@ class PlayerWidget(QFrame):
 
   def reset(self):
     self.unload()
-    self.labels["info"].setText("No player connected")
+    # self.labels["info"].setText("No player connected")
     self.setSpeed("")
     self.setMaster(False)
     self.setSync(False)
@@ -221,7 +221,8 @@ class PlayerWidget(QFrame):
     self.labels["sync"].setEnabled(sync)
 
   def setPlayerInfo(self, model, ip_addr, fw=""):
-    self.labels["info"].setText("{} {} {}".format(model, fw, ip_addr))
+    #self.labels["info"].setText("{} {} {}".format(model, fw, ip_addr))
+    pass
 
   def setSpeed(self, bpm, pitch=None):
     if pitch is None:
@@ -380,6 +381,7 @@ class Gui(QWidget):
     self.connect_linked_player_controls(player_number)
     self.players[player_number].show()
     self.update_player_layout()
+    self.setWindowTitle('Pioneer ProDJ Link Monitor')
     return self.players[player_number]
 
   def remove_player(self, player_number):
@@ -396,6 +398,7 @@ class Gui(QWidget):
       player.deleteLater()
       del self.players[player_number]
     self.update_player_layout()
+    self.setWindowTitle('Pioneer ProDJ Link Monitor')
     logging.info("Removed player {}".format(player_number))
 
   # has to be called using a signal, otherwise windows are created standalone
